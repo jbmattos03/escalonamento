@@ -62,3 +62,30 @@ def fifo(lista_proc):
 print(fifo(lista_proc))
 
 # SJF
+def sjf(lista_proc):
+    lista_proc.sort(key=lambda x: x["chegada"]) # organizar a lista por chegada
+    
+    total_tempo = 0
+    tp_total = 0
+    processos = lista_proc[:] # cópia da lista pra não atrapalhar os próximos processos
+
+    while processos:
+        next = [proc for proc in processos if proc["chegada"] <= total_tempo] # escolher o próximo processo a ser feito
+        
+        if next:
+            min_tempo = min(next, key=lambda proc: proc["tempo"]) # pegada do tempo do processo escolhido
+        else:
+            min_tempo = min(processos, key=lambda proc: proc["chegada"]) # caso não há nenhum processo escolhido, chama o processo
+            total_tempo = min_tempo["chegada"]                           # mais próximo e que seja o menor 
+        
+        espera = total_tempo - min_tempo["chegada"] # tempo de espera
+        if espera < 0:
+            espera = 0
+        
+        total_tempo += min_tempo["tempo"]  # adiciona o andamento do tempo que o processo está fazendo
+        tp_total += espera + min_tempo["tempo"] # formação do turnaround
+        processos.remove(min_tempo)  # remoção do processo na cópia da lista
+    
+    return tp_total / len(lista_proc)
+
+print(sjf(lista_proc))
