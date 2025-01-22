@@ -1,5 +1,7 @@
 # Escalonamento
-Solução para o trabalho final da disciplina Sistemas Operacionais
+Solução para o trabalho final da disciplina Sistemas Operacionais.
+
+Equipe: Júlia Mattos e Thiago Dias
 
 
 # FASE 1) 
