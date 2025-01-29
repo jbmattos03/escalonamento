@@ -36,3 +36,10 @@ Esse sistema deve implementar os algoritmos de substituição de páginas:
 + Colocar delay para verificar a execução 
 + Para os testes, favor não apagar os dados de entrada a cada execução.
 + A linguagem de programação é de escolha do grupo.
+
+# Como Rodar
+Certifique-se de que está no diretório src, então execute o seguinte comando no seu terminal:
+
+```
+py main.py file
+```

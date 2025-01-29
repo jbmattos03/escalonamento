@@ -7,40 +7,49 @@ Escalonador de processos
 + EDF
 '''
 
+import sys
+
 # cadastrar processo
-lista_proc = []
+def processar_input(input_lines=None):
+    lista_proc = []
 
-while True:
-    linha = input("Digite uma linha (ou \"p\" para parar) \n")
-
-    if linha.lower() == "p": #condição de parada
-        break
-
-    linha = linha.split(" ") #separar os elementos da linha
+    if input_lines is None:
+        input_lines = sys.stdin.readlines()
     
-    # checar se a linha tem 3 elementos
-    if len(linha) != 4:
-        print("Insira 4 valores separados por espaços \n")
-        continue # ir para próxima iteração
+    for linha in input_lines:
+        linha = linha.strip()
 
-    # checar tipo dos valores
-    try:
-        proc = {
-            "chegada": int(linha[0]),
-            "prioridade": int(linha[1]),
-            "deadline": int(linha[2]),
-            "tempo": int(linha[3])
-        }    
-    except ValueError:
-        print("Insira apenas números ou \"p\" para parar \n")
-        continue
+        if linha.lower() == "p": #condição de parada
+            break
 
-    lista_proc.append(proc)
-    
-quantum = int(input("Digite o quantum \n")) # quantum
+        linha = linha.split(" ") #separar os elementos da linha
+        
+        # checar se a linha tem 4 elementos
+        if len(linha) != 4:
+            print("Insira 4 valores separados por espaços \n")
+            continue # ir para próxima iteração
 
-print(lista_proc)
-print(f'Quantum:" {quantum}\n')
+        # checar tipo dos valores
+        try:
+            proc = {
+                "chegada": int(linha[0]),
+                "prioridade": int(linha[1]),
+                "deadline": int(linha[2]),
+                "tempo": int(linha[3])
+            }    
+        except ValueError:
+            print("Insira apenas números ou \"p\" para parar \n")
+            continue
+
+        lista_proc.append(proc)
+
+    if input_lines is None or not input_lines[-1].strip().isdigit():
+        quantum = int(input("Digite o quantum \n")) # quantum
+    else:
+        quantum = int(input_lines.pop().strip())
+
+    return lista_proc, quantum
+    #print(f'Quantum:" {quantum}\n')
 
 # FIFO
 def fifo(lista_proc):
@@ -62,7 +71,7 @@ def fifo(lista_proc):
 
     return tp_total / len(lista_proc)
     
-print(fifo(lista_proc))
+#print(fifo(lista_proc))
 
 # SJF
 def sjf(lista_proc):
@@ -91,7 +100,7 @@ def sjf(lista_proc):
     
     return tp_total / len(lista_proc)
 
-print(sjf(lista_proc))
+#print(sjf(lista_proc))
 
 #EDF
 def edf(lista_proc, quantum):
@@ -126,4 +135,39 @@ def edf(lista_proc, quantum):
     
     return tp_total / len(lista_proc)
 
-print(edf(lista_proc, quantum))
+#print(edf(lista_proc, quantum))
+
+# Round Robin
+def round_robin(lista_proc, quantum):
+    lista_proc.sort(key=lambda x: x["chegada"]) # ordenar a lista por chegada
+
+    processos = lista_proc[:]
+    total_tempo = 0
+    tp_total = 0
+    sobrecarga = 0
+
+    while processos:
+        prox = [proc for proc in processos if proc["chegada"] <= total_tempo]
+
+        if prox:
+            min_chegada = min(prox, key=lambda proc: proc["chegada"])
+        else:
+            min_chegada = min(processos, key=lambda proc: proc["chegada"])
+            total_tempo = min_chegada["chegada"]
+        
+        tempo = int(min_chegada["tempo"])  # cálculo da sobrecarga
+        while tempo > quantum:
+            sobrecarga += 1
+            tempo -= quantum
+            total_tempo += quantum + 1
+
+        total_tempo += tempo # tempo atual
+
+        turnaround_time = (total_tempo - min_chegada["chegada"])
+        tp_total += turnaround_time # turnaround
+        
+        processos.remove(min_chegada)  # remoção do processo na cópia da lista
+
+    return tp_total / len(lista_proc)
+
+#print(round_robin(lista_proc, quantum))
