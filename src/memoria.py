@@ -1,10 +1,5 @@
-lista_subs = list(map(int, input("Coloque no máximo 10 elementos/páginas:\n").split()))
-
-if len(lista_subs) > 10:
-     print("Erro, tem mais que 10 elementos")
-     exit()
-
-num_paginas = int(input("Quantas páginas estarão disponíveis: \n"))
+from entradateste import processar_input_m
+import sys
 
 def subs_pag_fifo(lista_subs, num_paginas):
     memoria = []
@@ -21,11 +16,11 @@ def subs_pag_fifo(lista_subs, num_paginas):
              memoria.append(page)
              pagina += 1
     
-        print(f"Páginas {pagina}: {memoria}")
+        #print(f"Páginas {pagina}: {memoria}")
 
     return memoria
 
-print("Última página:",subs_pag_fifo(lista_subs, num_paginas))
+#print("Última página do FIFO:",subs_pag_fifo(lista_subs, num_paginas))
 
 def lru(lista_subs, num_paginas):
     memoria = []
@@ -43,8 +38,8 @@ def lru(lista_subs, num_paginas):
             memoria.append(page)
             pagina += 1
     
-        print(f"Páginas {pagina}: {memoria}")
+        #print(f"Páginas {pagina}: {memoria}")
 
     return memoria
 
-print("Última página:", lru(lista_subs, num_paginas))
+#print("Última página do:", lru(lista_subs, num_paginas))

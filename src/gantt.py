@@ -1,7 +1,6 @@
 import seaborn as sns
 import matplotlib.pyplot as plt
 import pandas as pd
-import numpy as np
 
 def gantt(lista_proc, quantum, output):
     tasks = []
@@ -17,15 +16,14 @@ def gantt(lista_proc, quantum, output):
         })
         current_time = end_time
 
-    # Convert tasks to a DataFrame
+    # converter tasks em DataFrame
     df = pd.DataFrame(tasks)
 
-    # Create the Gantt chart
+    # criar gráfico
     fig, ax = plt.subplots(figsize=(10, 6))
-    for i, task in df.iterrows():
-        # Plot waiting time
-        # Plot execution time
-        ax.barh(y=task["Processo"], width=task["Fim"] - task["Início"], left=task["Início"], color=sns.color_palette("husl", len(tasks))[i], label=f'P{lista_proc.index(proc) + 1}')
+    _, ax = plt.subplots(figsize=(10, 6))
+    for i, task in enumerate(tasks):
+        ax.barh(y=task["Processo"], width=task["Fim"] - task["Início"], left=task["Início"], color=sns.color_palette("husl", len(tasks))[i], label=task["Processo"])
 
     ax.set_title("Gráfico de Gantt")
     ax.set_xlabel("Tempo")
@@ -33,6 +31,5 @@ def gantt(lista_proc, quantum, output):
     ax.set_xticks(range(0, sum(proc["tempo"] for proc in lista_proc) + 5, quantum))
     ax.legend()
 
-    # Save the Gantt chart to a file
     plt.savefig(output)
     plt.close()
