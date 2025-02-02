@@ -8,15 +8,18 @@ Escalonador de processos
 '''
 
 import sys
+from collections import deque
 
 # cadastrar processo
 def processar_input(input_lines=None):
     lista_proc = []
+    i = 0
 
     if input_lines is None:
         input_lines = sys.stdin.readlines()
-    
+
     for linha in input_lines:
+        #linha = input("Digite os valores de chegada, prioridade, deadline e tempo de execução separados por espaços \n")
         linha = linha.strip()
 
         if linha.lower() == "p": #condição de parada
@@ -24,7 +27,7 @@ def processar_input(input_lines=None):
 
         linha = linha.split(" ") #separar os elementos da linha
         
-        # checar se a linha tem 4 elementos
+        # checar se a linha tem 5 elementos
         if len(linha) != 4:
             print("Insira 4 valores separados por espaços \n")
             continue # ir para próxima iteração
@@ -40,13 +43,18 @@ def processar_input(input_lines=None):
         except ValueError:
             print("Insira apenas números ou \"p\" para parar \n")
             continue
-
+        
+        proc["id"] = i
         lista_proc.append(proc)
+
+        i += 1
 
     if input_lines is None or not input_lines[-1].strip().isdigit():
         quantum = int(input("Digite o quantum \n")) # quantum
     else:
         quantum = int(input_lines.pop().strip())
+
+    #quantum = int(input("Digite o valor do quantum \n"))
 
     return lista_proc, quantum
     #print(f'Quantum:" {quantum}\n')
@@ -73,7 +81,6 @@ def fifo(lista_proc):
     
 #print(fifo(lista_proc))
 
-# SJF
 def sjf(lista_proc):
     lista_proc.sort(key=lambda x: x["chegada"]) # organizar a lista por chegada
     
@@ -134,6 +141,7 @@ def edf(lista_proc, quantum):
         processos.remove(min_deadline)  # remoção do processo na cópia da lista
     
     return tp_total / len(lista_proc)
+    #return tp_total / len(lista_proc)
 
 #print(edf(lista_proc, quantum))
 
