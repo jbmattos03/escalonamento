@@ -2,4 +2,4 @@
 .txt
 
 # ignorar pycache
-src/__pycache__/
+pycache/*
