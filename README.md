@@ -44,8 +44,13 @@ Primeiro, certifique-se de que está no diretório src com:
 cd src
 ```
 
-Então. execute o seguinte comando no seu terminal:
+Então. execute os seguintes comandos no seu terminal:
 
 ```
 py main.py file
 ```
+
+```
+py main2.py
+```
+
