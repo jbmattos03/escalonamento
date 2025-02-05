@@ -1,35 +1,32 @@
 import seaborn as sns
 import matplotlib.pyplot as plt
 import pandas as pd
+import numpy as np
 
-def gantt(lista_proc, quantum, output):
-    tasks = []
-    current_time = 0
+def gantt(processes, output):
+    fig, ax = plt.subplots()
+    cmap = plt.get_cmap("tab10")
+    colors = cmap(np.linspace(0, 1, len(processes)))
 
-    for proc in lista_proc:
-        start_time = current_time
-        end_time = start_time + proc["tempo"]
-        tasks.append({
-            "Processo": f'P{lista_proc.index(proc) + 1}',
-            "Início": start_time,
-            "Fim": end_time,
-        })
-        current_time = end_time
+    max = -1
+    for proc in processes:
+        if proc["end"] > max:
+            max = proc["end"]
 
-    # converter tasks em DataFrame
-    df = pd.DataFrame(tasks)
+    for i, process in enumerate(processes):
+        start_time = process["start"]
+        end_time = process["end"]
+        ax.barh(i, end_time - start_time, left=start_time, color=colors[i], edgecolor='black', label=f"Process {process['id'] + 1}")
 
-    # criar gráfico
-    fig, ax = plt.subplots(figsize=(10, 6))
-    _, ax = plt.subplots(figsize=(10, 6))
-    for i, task in enumerate(tasks):
-        ax.barh(y=task["Processo"], width=task["Fim"] - task["Início"], left=task["Início"], color=sns.color_palette("husl", len(tasks))[i], label=task["Processo"])
-
-    ax.set_title("Gráfico de Gantt")
     ax.set_xlabel("Tempo")
-    ax.set_ylabel("Processo")
-    ax.set_xticks(range(0, sum(proc["tempo"] for proc in lista_proc) + 5, quantum))
-    ax.legend()
+    ax.set_ylabel("Processos")
+    ax.set_title("Gantt Chart")
+    ax.set_yticks(np.arange(len(processes)))
+    ax.set_yticklabels([f"Processo {process['id'] + 1}" for process in processes])
+    ax.set_xlim(0, max + 5)
+    ax.legend(loc="upper right")
+    ax.grid(True)
 
+    plt.tight_layout()
     plt.savefig(output)
     plt.close()

@@ -1,2 +1,2 @@
-FIFO MEMÓRIA: [1, 6, 8]
-LRU: [2, 6, 8]
+Última página da memória do FIFO: [1, 6, 8]
+Última página da memória do LRU: [2, 6, 8]

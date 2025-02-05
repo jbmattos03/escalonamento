@@ -1,4 +1,5 @@
 FIFO: 3.75
 SJF: 3.5
 EDF: 5.0
+Prioridade: 5.0
 Round Robin: 5.0

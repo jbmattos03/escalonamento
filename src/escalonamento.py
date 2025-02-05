@@ -7,57 +7,7 @@ Escalonador de processos
 + EDF
 '''
 
-import sys
 from collections import deque
-
-# cadastrar processo
-def processar_input(input_lines=None):
-    lista_proc = []
-    i = 0
-
-    if input_lines is None:
-        input_lines = sys.stdin.readlines()
-
-    for linha in input_lines:
-        #linha = input("Digite os valores de chegada, prioridade, deadline e tempo de execução separados por espaços \n")
-        linha = linha.strip()
-
-        if linha.lower() == "p": #condição de parada
-            break
-
-        linha = linha.split(" ") #separar os elementos da linha
-        
-        # checar se a linha tem 5 elementos
-        if len(linha) != 4:
-            print("Insira 4 valores separados por espaços \n")
-            continue # ir para próxima iteração
-
-        # checar tipo dos valores
-        try:
-            proc = {
-                "chegada": int(linha[0]),
-                "prioridade": int(linha[1]),
-                "deadline": int(linha[2]),
-                "tempo": int(linha[3])
-            }    
-        except ValueError:
-            print("Insira apenas números ou \"p\" para parar \n")
-            continue
-        
-        proc["id"] = i
-        lista_proc.append(proc)
-
-        i += 1
-
-    if input_lines is None or not input_lines[-1].strip().isdigit():
-        quantum = int(input("Digite o quantum \n")) # quantum
-    else:
-        quantum = int(input_lines.pop().strip())
-
-    #quantum = int(input("Digite o valor do quantum \n"))
-
-    return lista_proc, quantum
-    #print(f'Quantum:" {quantum}\n')
 
 # FIFO
 def fifo(lista_proc):
@@ -66,6 +16,7 @@ def fifo(lista_proc):
     espera = 0
     tp_total = 0
     total_tempo = 0
+    lista_res = []
 
     for i in range(len(lista_proc)):
         if i == 0: # primeiro processo
@@ -77,7 +28,15 @@ def fifo(lista_proc):
 
         tp_total += (espera + lista_proc[i]["tempo"])
 
-    return tp_total / len(lista_proc)
+        proc = {
+            "id": lista_proc[i]["id"],
+            "start": lista_proc[i]["chegada"] + espera,
+            "end": lista_proc[i]["chegada"] + espera + lista_proc[i]["tempo"]
+        }
+
+        lista_res.append(proc)
+
+    return lista_res, tp_total / len(lista_proc)
     
 #print(fifo(lista_proc))
 
@@ -87,6 +46,7 @@ def sjf(lista_proc):
     total_tempo = 0
     tp_total = 0
     processos = lista_proc[:] # cópia da lista pra não atrapalhar os próximos processos
+    lista_res = []
 
     while processos:
         next = [proc for proc in processos if proc["chegada"] <= total_tempo] # escolher o próximo processo a ser feito
@@ -101,15 +61,66 @@ def sjf(lista_proc):
         if espera < 0:
             espera = 0
         
+        proc = {
+            "id": min_tempo["id"],
+            "start": total_tempo,
+            "end": total_tempo + espera + min_tempo["tempo"]
+        }
+
+        lista_res.append(proc) # adicionar o processo na lista de resultados
+        
         total_tempo += min_tempo["tempo"]  # adiciona o andamento do tempo que o processo está fazendo
         tp_total += espera + min_tempo["tempo"] # formação do turnaround
         processos.remove(min_tempo)  # remoção do processo na cópia da lista
     
-    return tp_total / len(lista_proc)
+    return lista_res, tp_total / len(lista_proc)
 
 #print(sjf(lista_proc))
 
-#EDF
+# Prioridade
+def prioridade(lista_proc, quantum):
+    lista_proc.sort(key=lambda x: x["chegada"]) # organizar a lista por chegada
+    
+    total_tempo = 0
+    tp_total = 0
+    processos = lista_proc[:]
+    sobrecarga = 0
+    lista_res = []
+
+    while processos:
+        next = [proc for proc in processos if proc["chegada"] <= total_tempo] # procura o processo com menor tempo
+        
+        if next:
+            max_prioridade = max(next, key=lambda proc: proc["prioridade"]) # procura o processo com maior prioridade
+        else:
+            max_prioridade = min(processos, key=lambda proc: proc["chegada"]) # chama o próximo processo se não tiver processos no tempo atual
+            total_tempo = max_prioridade["chegada"]  
+
+        proc = {
+            "id": max_prioridade["id"],
+            "start": total_tempo,
+        }                        
+        
+        tempo = int(max_prioridade["tempo"])  # cálculo da sobrecarga
+        while tempo > quantum:
+            sobrecarga += 1
+            tempo -= quantum
+            total_tempo += quantum + 1
+        
+        proc["end"] = total_tempo + max_prioridade["tempo"]
+
+        lista_res.append(proc) # adicionar o processo na lista de resultados
+        
+        total_tempo += tempo # tempo atual
+
+        turnaround_time = (total_tempo - max_prioridade["chegada"])
+        tp_total += turnaround_time # turnaround
+        
+        processos.remove(max_prioridade)  # remoção do processo na cópia da lista
+    
+    return lista_res, tp_total / len(lista_proc)
+
+# EDF
 def edf(lista_proc, quantum):
     lista_proc.sort(key=lambda x: x["chegada"]) # organizar a lista por chegada
     
@@ -117,6 +128,7 @@ def edf(lista_proc, quantum):
     tp_total = 0
     processos = lista_proc[:]
     sobrecarga = 0
+    lista_res = []
 
     while processos:
         next = [proc for proc in processos if proc["chegada"] <= total_tempo] # procura o processo com menor tempo
@@ -125,14 +137,23 @@ def edf(lista_proc, quantum):
             min_deadline = min(next, key=lambda proc: proc["deadline"]) # procura o processo com menor deadline
         else:
             min_deadline = min(processos, key=lambda proc: proc["chegada"]) # chama o próximo processo se não tiver processos no tempo atual
-            total_tempo = min_deadline["chegada"]                          
+            total_tempo = min_deadline["chegada"]  
+
+        proc = {
+            "id": min_deadline["id"],
+            "start": total_tempo,
+        }                        
         
         tempo = int(min_deadline["tempo"])  # cálculo da sobrecarga
         while tempo > quantum:
             sobrecarga += 1
             tempo -= quantum
             total_tempo += quantum + 1
+        
+        proc["end"] = total_tempo + min_deadline["tempo"]
 
+        lista_res.append(proc) # adicionar o processo na lista de resultados
+        
         total_tempo += tempo # tempo atual
 
         turnaround_time = (total_tempo - min_deadline["chegada"])
@@ -140,7 +161,7 @@ def edf(lista_proc, quantum):
         
         processos.remove(min_deadline)  # remoção do processo na cópia da lista
     
-    return tp_total / len(lista_proc)
+    return lista_res, tp_total / len(lista_proc)
     #return tp_total / len(lista_proc)
 
 #print(edf(lista_proc, quantum))
@@ -153,15 +174,21 @@ def round_robin(lista_proc, quantum):
     total_tempo = 0
     tp_total = 0
     sobrecarga = 0
+    lista_res = []
 
     while processos:
-        prox = [proc for proc in processos if proc["chegada"] <= total_tempo]
+        prox = [proc for proc in processos if proc["chegada"] <= total_tempo] # processos que chegaram
 
         if prox:
-            min_chegada = min(prox, key=lambda proc: proc["chegada"])
+            min_chegada = min(prox, key=lambda proc: proc["chegada"]) # escolher o próximo processo dos que chegaram
         else:
-            min_chegada = min(processos, key=lambda proc: proc["chegada"])
+            min_chegada = min(processos, key=lambda proc: proc["chegada"]) # caso não tenha processo, chama o próximo processo que chegar
             total_tempo = min_chegada["chegada"]
+
+        proc = {
+            "id": min_chegada["id"],
+            "start": total_tempo,
+        }
         
         tempo = int(min_chegada["tempo"])  # cálculo da sobrecarga
         while tempo > quantum:
@@ -169,6 +196,10 @@ def round_robin(lista_proc, quantum):
             tempo -= quantum
             total_tempo += quantum + 1
 
+        proc["end"] = total_tempo + min_chegada["tempo"]
+
+        lista_res.append(proc) # adicionar o processo na lista de resultados
+        
         total_tempo += tempo # tempo atual
 
         turnaround_time = (total_tempo - min_chegada["chegada"])
@@ -176,6 +207,6 @@ def round_robin(lista_proc, quantum):
         
         processos.remove(min_chegada)  # remoção do processo na cópia da lista
 
-    return tp_total / len(lista_proc)
+    return lista_res, tp_total / len(lista_proc)
 
 #print(round_robin(lista_proc, quantum))
