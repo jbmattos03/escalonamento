@@ -1,2 +1,5 @@
 # ignorar arquivos .txt
 .txt
+
+# ignorar pycache
+__pycache__
